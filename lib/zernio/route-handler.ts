@@ -24,7 +24,7 @@ export function withZernioManagement(handler: (context: WorkspaceContext, reques
       if (error instanceof ConnectionError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
       if (error instanceof z.ZodError) return NextResponse.json({ success: false, error: 'Unexpected Zernio response. Please retry or contact support.' }, { status: 502 });
       if (error instanceof MetaApiError) {
-        const message = error.code === 401 ? 'The Zernio API key is invalid or expired.' : error.code === 403 ? 'Use an unrestricted, read-write Zernio key with access to this profile and Inbox.' : error.code === 402 ? 'This Zernio account needs Inbox access. Check your Zernio plan.' : error.message;
+        const message = error.code === 401 ? 'The Zernio API key is invalid or expired.' : error.code === 403 ? 'Use an unrestricted, read-write Zernio key with access to this profile and Inbox.' : error.code === 402 ? 'Zernio returned "payment required" for this request. This usually means your Zernio account is at its free-tier connected-account limit (2) with no payment method on file — add a card in Zernio billing to connect more, or free up a slot by disconnecting one first. This is unrelated to any OpenReply plan or feature.' : error.message;
         return NextResponse.json({ success: false, error: message }, { status: 502 });
       }
       return NextResponse.json({ success: false, error: 'Could not configure Zernio. Please retry.' }, { status: 502 });
