@@ -43,13 +43,12 @@ export const PUT = withZernioManagement(async ({ workspaceId }, request) => {
     if (!(await listProfiles(connection.apiKey)).some(p => p.id === profileId)) throw new ConnectionError('That profile is not accessible with this API key.', 403);
     // Zernio API keys and webhook subscriptions are account-wide (not scoped to a single
     // profile), and InstagramAccount rows record their own zernioAccountId rather than a
-    // profileId. So switching which profile is "selected" here only changes which profile's
-    // remote accounts are browsable below — it does not disturb accounts already connected
-    // from a different profile, and the same account-wide webhook keeps routing their events
-    // correctly (see the webhook route's lookup by zernioAccountId). This lets one workspace
-    // register Instagram accounts from multiple Zernio profiles and run automations for all
-    // of them at once: switch here, use "Use in OpenReply" to register the new profile's
-    // account, then switch back (or leave it) — nothing needs to be disconnected first.
+    // profileId. So the "selected" profile here only decides where "Connect another Instagram
+    // account" adds new accounts — it does not disturb accounts already connected from a
+    // different profile, and the same account-wide webhook keeps routing their events
+    // correctly (see the webhook route's lookup by zernioAccountId). GET lists accounts from
+    // every profile and the accounts route takes each account's own profileId, so one
+    // workspace can register accounts from multiple Zernio profiles without switching here.
     const webhookId = await ensureWebhook({ apiKey: connection.apiKey, workspaceId, secret: decryptToken(connection.webhookSecret), baseUrl: getBaseUrl(), webhookId: connection.webhookId });
     await tx.zernioConnection.update({ where: { workspaceId }, data: { profileId, webhookId } });
   });
