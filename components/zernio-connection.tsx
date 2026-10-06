@@ -10,7 +10,7 @@ import { zernioLink } from '@/lib/zernio-links';
 type ConnectionData = {
   configured: boolean; profileId?: string | null; webhookReady?: boolean;
   profiles: { id: string; name: string }[];
-  accounts: { id: string; username: string; instagramId: string; connected?: boolean }[];
+  accounts: { id: string; username: string; instagramId: string; connected?: boolean; profileId: string; profileName: string }[];
 };
 
 export function ZernioConnection({ canManage }: { canManage: boolean }) {
@@ -75,7 +75,7 @@ export function ZernioConnection({ canManage }: { canManage: boolean }) {
           </form>
           {data.webhookReady && <div className="space-y-3 border-t border-zernio-border pt-4">
             <p className="text-sm">{t("Webhook configured. Choose an Instagram account for OpenReply:")}</p>
-            {data.accounts.map(a => <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 text-sm"><span>@{a.username}</span><button disabled={busy || a.connected} onClick={() => void act({ path: 'accounts', method: 'POST', body: { accountId: a.id } })} className="rounded-lg border border-zernio-border bg-white px-3 py-2 disabled:opacity-50">{a.connected ? t("Connected") : t("Use in OpenReply")}</button></div>)}
+            {data.accounts.map(a => <div key={a.id} className="flex flex-wrap items-center justify-between gap-3 text-sm"><span>@{a.username}{data.profiles.length > 1 && <span className="ml-1 text-xs opacity-70">({a.profileName})</span>}</span><button disabled={busy || a.connected} onClick={() => void act({ path: 'accounts', method: 'POST', body: { accountId: a.id, profileId: a.profileId } })} className="rounded-lg border border-zernio-border bg-white px-3 py-2 disabled:opacity-50">{a.connected ? t("Connected") : t("Use in OpenReply")}</button></div>)}
             <button disabled={busy} onClick={() => void act({ path: 'connect', method: 'POST' })} className="rounded-lg border border-zernio-border bg-white px-3 py-2 text-sm disabled:opacity-50">{t("Connect another Instagram account")}</button>
             <p className="text-xs leading-5">{t("After connecting Instagram, return here and select it for OpenReply. Keep Zernio automations off for these campaigns to avoid sending twice.")}</p>
           </div>}

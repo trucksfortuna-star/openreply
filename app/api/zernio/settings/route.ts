@@ -16,9 +16,9 @@ export const GET = withZernioManagement(async ({ workspaceId }) => {
   const saved = await prisma.zernioConnection.findUnique({ where: { workspaceId } });
   if (!saved) return NextResponse.json({ success: true, data: { configured: false, profiles: [], accounts: [] } });
   const apiKey = decryptToken(saved.apiKey);
-  const [profiles, accounts] = await Promise.all([
-    listProfiles(apiKey), saved.profileId ? listInstagramAccounts({ apiKey, profileId: saved.profileId }) : [],
-  ]);
+  const profiles = await listProfiles(apiKey);
+  const accountsByProfile = saved.webhookId ? await Promise.all(profiles.map(async profile => ({ profile, accounts: await listInstagramAccounts({ apiKey, profileId: profile.id }) }))) : [];
+  const accounts = accountsByProfile.flatMap(({ profile, accounts }) => accounts.map(a => ({ ...a, profileId: profile.id, profileName: profile.name })));
   const connected = await prisma.instagramAccount.findMany({ where: { workspaceId, provider: 'ZERNIO' }, select: { zernioAccountId: true } });
   const connectedIds = new Set(connected.map(a => a.zernioAccountId));
   return NextResponse.json({ success: true, data: { configured: true, profileId: saved.profileId, webhookReady: Boolean(saved.webhookId), profiles, accounts: accounts.map(a => ({ ...a, connected: connectedIds.has(a.id) })) } });
